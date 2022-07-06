@@ -78,15 +78,65 @@ pub mod thick_line {
         pt: Point2I64,
         dp: Point2I64, 
         step: Point2I64,
-        double_left: &dyn Fn(i64, i64) -> f64,
+        double_left: &dyn Fn(&dyn Fn(), i64, i64) -> f64,
         arg_left: &dyn Fn(),
-        double_right: &dyn Fn(i64, i64) -> f64,
+        double_right: &dyn Fn(&dyn Fn(), i64, i64) -> f64,
         arg_right: &dyn Fn(),
-        pxstep: i64,
-        pystep: i64)
+        pstep: Point2I64)
         {
+            let mut p_error = 0i64;
+            let mut error = 0i64;
+            let mut y = pt.y;
+            let mut x = pt.x;
+            let threshold = dp.x - 2 * dp.y;
+            let e_diag = -2 * dp.x;
+            let e_square = 2* dp.y;
+            let length = dp.x + 1;
+            let d = ((dp.x * dp.x + dp.y * dp.y) as f64).sqrt();
             
-        }
+            
+            for p in 0..length {
+                let w_left = (double_left(arg_left, p, length) * 2.0 * d) as i64;
+                let w_right = (double_right(arg_right, p, length) * 2.0 * d) as i64;
+                x_perpendicular(
+                    canvas, 
+                    color, 
+                    Point2I64::new(x, y),
+                    Point2I64::new(dp.x, dp.y), 
+                    pstep,
+                    p_error, w_left, w_right, error
+                );
 
+                if error >= threshold {
+                    y += step.y;
+                    error += e_diag;
+    
+                    if p_error >= threshold {
+                        x_perpendicular(
+                            canvas, 
+                            color, 
+                            pt, 
+                            dp, 
+                            pstep, 
+                            (p_error + e_diag + e_square), 
+                            w_left, 
+                            w_right,
+                            error
+                        );
+
+                        p_error += e_diag;
+                    }
+                    p_error += e_square;
+                }
+
+                error += e_square;
+                x += step.x;
+
+            };
+
+            
+        
+        }
+        
         
 }
