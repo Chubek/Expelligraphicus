@@ -1,2 +1,1 @@
-pub mod draw_line;
-pub mod thick_line;
+pub mod straight_line;
